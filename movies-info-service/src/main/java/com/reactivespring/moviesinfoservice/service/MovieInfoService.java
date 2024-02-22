@@ -25,6 +25,15 @@ public class MovieInfoService {
         return repository.findAll();
     }
 
+    public Flux<MovieInfo> getAllMovieInfoByYear(Integer year){
+        return repository.findMovieInfoByYear(year);
+    }
+
+    public Flux<MovieInfo> getAllMovieInfoByName(String name){
+        return repository.findMovieInfoByName(name);
+    }
+
+
     public Mono<Void> deleteMovieInfo(String movieInfoId){
         return repository.deleteById(movieInfoId);
     }

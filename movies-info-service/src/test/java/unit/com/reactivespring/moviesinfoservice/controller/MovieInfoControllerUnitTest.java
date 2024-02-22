@@ -47,6 +47,28 @@ class MovieInfoControllerUnitTest {
     }
 
     @Test
+    void createMovieInfo_withInvalidRequest() {
+        //given
+        var movieInfo = new MovieInfo(null, "", -1, List.of("", "Michael Cane"), LocalDate.parse("2005-06-15"));
+
+        //when
+        when(movieInfoServiceMock.saveMovieInfo(any(MovieInfo.class))).thenReturn(Mono.just(movieInfo));
+        client.post().uri(MOVIE_INFO_URI)
+                .bodyValue(movieInfo)
+                .exchange()
+                .expectStatus()
+                .isBadRequest()
+                .expectBody(String.class)
+                .consumeWith(stringEntityExchangeResult -> {
+                    var responseBody = stringEntityExchangeResult.getResponseBody();
+                    var expectedErrorMessage="movieInfo.cast must be present,movieInfo.name must be present,movieInfo.year must be a Positive value";
+                    System.out.println("responseBody:" + responseBody);
+                    assert responseBody != null;
+                    assertEquals(expectedErrorMessage,responseBody);
+                });
+    }
+
+    @Test
     void getMovieInfo() {
         var movieInfo = new MovieInfo(null, "Batman Begins", 2005, List.of("Christian Bale", "Michael Cane"), LocalDate.parse("2005-06-15"));
         when(movieInfoServiceMock.getMovieInfo(any())).thenReturn(Mono.just(movieInfo));

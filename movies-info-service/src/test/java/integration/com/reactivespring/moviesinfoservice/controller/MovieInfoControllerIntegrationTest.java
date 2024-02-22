@@ -10,6 +10,7 @@ import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWeb
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.web.util.UriComponentsBuilder;
 import reactor.test.StepVerifier;
 
 import java.time.LocalDate;
@@ -75,6 +76,32 @@ class MovieInfoControllerIntegrationTest {
     }
 
     @Test
+    void getAllMovieInfoByYear() {
+        var uri =UriComponentsBuilder.fromUriString(MOVIE_INFO_URI)
+                .queryParam("year",2005).buildAndExpand().toUri();
+        //when
+        webTestClient.get().uri(uri)
+                .exchange()
+                .expectStatus()
+                .is2xxSuccessful()
+                .expectBodyList(MovieInfo.class)
+                .hasSize(1);
+    }
+
+    @Test
+    void getAllMovieInfoByName() {
+        var uri =UriComponentsBuilder.fromUriString(MOVIE_INFO_URI)
+                .queryParam("name","Batman Begins").buildAndExpand().toUri();
+        //when
+        webTestClient.get().uri(uri)
+                .exchange()
+                .expectStatus()
+                .is2xxSuccessful()
+                .expectBodyList(MovieInfo.class)
+                .hasSize(1);
+    }
+
+    @Test
     void getMovieInfo() {
         //when
         webTestClient.get().uri(MOVIE_INFO_URI + "/{id}","abc")
@@ -88,6 +115,15 @@ class MovieInfoControllerIntegrationTest {
                     assert savedExchangeMovieInfo.getMovieInfoId() != null ;
                     assertEquals(savedExchangeMovieInfo.getName(),"Dark Knight Rises");
                 });
+    }
+
+    @Test
+    void getMovieInfo_withInvalidId() {
+        //when
+        webTestClient.get().uri(MOVIE_INFO_URI + "/{id}","def")
+                .exchange()
+                .expectStatus()
+                .isNotFound();
     }
 
     @Test
@@ -131,5 +167,19 @@ class MovieInfoControllerIntegrationTest {
                 .is2xxSuccessful()
                 .expectBodyList(MovieInfo.class)
                 .hasSize(2);
+    }
+
+    @Test
+    void updateMovieInfo_invalid() {
+        //given
+        var movieInfo = new MovieInfo("abc", "Dark Knight Rises2", 2012, List.of("Christian Bale", "Tom Hardy"), LocalDate.parse("2012-07-20"));
+
+        //when
+        webTestClient.put().uri(MOVIE_INFO_URI + "/{id}", "def")
+                .bodyValue(movieInfo)
+                .exchange()
+                .expectStatus()
+                .isNotFound();
+
     }
 }
