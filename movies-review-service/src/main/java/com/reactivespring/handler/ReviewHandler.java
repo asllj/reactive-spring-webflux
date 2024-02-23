@@ -2,6 +2,7 @@ package com.reactivespring.handler;
 
 import com.reactivespring.domain.Review;
 import com.reactivespring.exception.ReviewDataException;
+import com.reactivespring.exception.ReviewNotFoundException;
 import com.reactivespring.repository.ReviewReactiveRepository;
 import jakarta.validation.ConstraintViolation;
 import lombok.AllArgsConstructor;
@@ -69,7 +70,8 @@ public class ReviewHandler {
 
     public Mono<ServerResponse> updateReview(ServerRequest request) {
         String reviewId = request.pathVariable("id");
-        var existingReview = repository.findById(reviewId);
+        var existingReview = repository.findById(reviewId)
+                .switchIfEmpty(Mono.error(new ReviewNotFoundException("Review not found for the given review id " + reviewId)));
 
         return existingReview.flatMap(review -> request.bodyToMono(Review.class)
                 .map(reqReview -> {
@@ -79,6 +81,7 @@ public class ReviewHandler {
                 })
                 .flatMap(repository::save)
                 .flatMap(savedReview -> ServerResponse.ok().bodyValue(savedReview)));
+               // .switchIfEmpty(ServerResponse.noContent().build());;
 
     }
 

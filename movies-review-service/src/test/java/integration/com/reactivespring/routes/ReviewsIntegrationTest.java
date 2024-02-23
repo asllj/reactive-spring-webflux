@@ -82,6 +82,19 @@ public class ReviewsIntegrationTest {
     }
 
     @Test
+    void updateReview_reviewNotFound() {
+        //given
+        var request = new Review("2", 1L, "Awesome Movie3",9.0);
+
+        //when
+        webTestClient.put().uri(REVIEW_URI + "/{id}", "65")
+                .bodyValue(request)
+                .exchange()
+                .expectStatus()
+                .isNotFound();
+    }
+
+    @Test
     void deleteMovieInfo() {
         webTestClient.get().uri(REVIEW_URI)
                 .exchange()
